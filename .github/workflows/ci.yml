@@ -1,8 +1,9 @@
 name: YouTube Agent CI
 
-on:
+'on':
 push:
-branches: [main]
+branches:
+- main
 pull_request:
 workflow_dispatch:
 
@@ -12,10 +13,9 @@ contents: read
 jobs:
 test:
 runs-on: ubuntu-latest
-
 steps:
-  - name: Checkout repository
-    uses: actions/checkout@v4
+- name: Checkout repository
+uses: actions/checkout@v4
 
   - name: Set up Python
     uses: actions/setup-python@v5
@@ -34,6 +34,7 @@ steps:
       import sys
       from pathlib import Path
 
+      output = Path(tempfile.gettempdir()) / "video_package.json"
       result = subprocess.run(
           [
               sys.executable,
@@ -41,24 +42,20 @@ steps:
               "--topic",
               "AI for Beginners",
               "--output",
-              str(Path(tempfile.gettempdir()) / "video_package.json"),
+              str(output),
           ],
           capture_output=True,
           text=True,
       )
 
       assert result.returncode == 0, result.stderr
-
-      output = Path(tempfile.gettempdir()) / "video_package.json"
       data = json.loads(output.read_text(encoding="utf-8"))
-
       assert data["topic"] == "AI for Beginners"
       assert len(data["title_ideas"]) >= 3
       assert len(data["script_draft"]) >= 3
       assert len(data["scene_plan"]) >= 1
       assert data["publishing_status"] == "NOT_PUBLISHED"
       assert data["review_required"] is True
-
       print("PASS: topic package generated and validated")
       PY
 
